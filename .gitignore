@@ -19,6 +19,9 @@ frontend/.env.local
 # Logs
 *.log
 
+# Local tooling
+.agents/
+
 # OS
 .DS_Store
 Thumbs.db
