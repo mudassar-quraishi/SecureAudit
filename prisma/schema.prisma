@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  auth0UserId       String            @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  connectedAccounts ConnectedAccount[]
+  scans             Scan[]
+  policies          PolicyRule[]
+  approvals         Approval[]
+  auditEvents       AuditEvent[]
+}
+
+model ConnectedAccount {
+  id              String   @id @default(cuid())
+  userId          String
+  provider        String
+  externalId      String
+  grantedScopes   String
+  createdAt       DateTime @default(now())
+  revokedAt       DateTime?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, provider])
+}
+
+model Scan {
+  id          String    @id @default(cuid())
+  userId      String
+  repo        String
+  branch      String
+  status      String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  findings    Finding[]
+}
+
+model Finding {
+  id          String   @id @default(cuid())
+  scanId      String
+  title       String
+  severity    String
+  path        String
+  explanation String
+  confidence  Float
+  createdAt   DateTime @default(now())
+  scan        Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+}
+
+model PolicyRule {
+  id          String   @id @default(cuid())
+  userId      String
+  resource    String
+  action      String
+  effect      String
+  requiresMfa Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, action])
+}
+
+model Approval {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String
+  repo        String
+  status      String
+  payload     Json
+  createdAt   DateTime @default(now())
+  decidedAt   DateTime?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  agent     String
+  action    String
+  repo      String
+  metadata  Json
+  traceId   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([repo, createdAt])
+}

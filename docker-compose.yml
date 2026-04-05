@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: secureaudit
+      POSTGRES_USER: secureaudit
+      POSTGRES_PASSWORD: secureaudit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
